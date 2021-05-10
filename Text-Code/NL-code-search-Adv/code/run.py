@@ -82,18 +82,19 @@ class InputFeatures(object):
 
         
 def convert_examples_to_features(js,tokenizer,args):
-    #code
-    if 'code_tokens' in js:
-        code=' '.join(js['code_tokens'])
-    else:
-        code=' '.join(js['function_tokens'])
+    # #code
+    # if 'code_tokens' in js:
+    #     code=' '.join(js['code_tokens'])
+    # else:
+    #     code=' '.join(js['function_tokens'])
+    code = js["code"]
     code_tokens=tokenizer.tokenize(code)[:args.block_size-2]
     code_tokens =[tokenizer.cls_token]+code_tokens+[tokenizer.sep_token]
     code_ids =  tokenizer.convert_tokens_to_ids(code_tokens)
     padding_length = args.block_size - len(code_ids)
     code_ids+=[tokenizer.pad_token_id]*padding_length
     
-    nl=' '.join(js['docstring_tokens'])
+    nl=js["desc"]
     nl_tokens=tokenizer.tokenize(nl)[:args.block_size-2]
     nl_tokens =[tokenizer.cls_token]+nl_tokens+[tokenizer.sep_token]
     nl_ids =  tokenizer.convert_tokens_to_ids(nl_tokens)
