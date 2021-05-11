@@ -262,20 +262,20 @@ def train(args, train_dataset, model, tokenizer):
                         tr_num=0
                         train_loss=0
  
-                    if results['eval_mrr']>best_acc:
-                        best_acc=results['eval_mrr']
-                        logger.info("  "+"*"*20)  
-                        logger.info("  Best mrr:%s",round(best_acc,4))
-                        logger.info("  "+"*"*20)                          
+                    # if results['eval_mrr']>best_acc:
+                    #     best_acc=results['eval_mrr']
+                    #     logger.info("  "+"*"*20)
+                    #     logger.info("  Best mrr:%s",round(best_acc,4))
+                    #     logger.info("  "+"*"*20)
                         
-                        checkpoint_prefix = 'checkpoint-best-mrr'
-                        output_dir = os.path.join(args.output_dir, '{}'.format(checkpoint_prefix))                        
-                        if not os.path.exists(output_dir):
-                            os.makedirs(output_dir)                        
-                        model_to_save = model.module if hasattr(model,'module') else model
-                        output_dir = os.path.join(output_dir, '{}'.format('model.bin')) 
-                        torch.save(model_to_save.state_dict(), output_dir)
-                        logger.info("Saving model checkpoint to %s", output_dir)
+                    checkpoint_prefix = 'checkpoint-best-mrr'
+                    output_dir = os.path.join(args.output_dir, '{}'.format(checkpoint_prefix))
+                    if not os.path.exists(output_dir):
+                        os.makedirs(output_dir)
+                    model_to_save = model.module if hasattr(model,'module') else model
+                    output_dir = os.path.join(output_dir, '{}'.format('model.bin'))
+                    torch.save(model_to_save.state_dict(), output_dir)
+                    logger.info("Saving model checkpoint to %s", output_dir)
 
 
 eval_dataset=None
