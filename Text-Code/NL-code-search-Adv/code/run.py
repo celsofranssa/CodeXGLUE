@@ -127,7 +127,11 @@ class TextDataset(Dataset):
         return len(self.examples)
 
     def __getitem__(self, i):   
-        return (torch.tensor(self.examples[i].code_ids),torch.tensor(self.examples[i].nl_ids))
+        return (
+            torch.tensor(self.examples[i].code_ids),
+            torch.tensor(self.examples[i].nl_ids),
+            torch.tensor(self.examples[i].idx)
+        )
             
 
 def set_seed(seed=42):
@@ -362,36 +366,36 @@ def test(args, model, tokenizer):
     nb_eval_steps = 0
     code_vecs=[] 
     nl_vecs=[]
+    ids=[]
     for batch in eval_dataloader:
         code_inputs = batch[0].to(args.device)    
         nl_inputs = batch[1].to(args.device)
+        batch_ids = batch[2].to(args.device)
         with torch.no_grad():
             lm_loss,code_vec,nl_vec = model(code_inputs,nl_inputs)
             eval_loss += lm_loss.mean().item()
-            code_vecs.append(code_vec.cpu().numpy())
-            nl_vecs.append(nl_vec.cpu().numpy())
+            code_vecs.append(code_vec.cpu())
+            nl_vecs.append(nl_vec.cpu())
+            ids.append(batch_ids.cpu())
         nb_eval_steps += 1
-    code_vecs=np.concatenate(code_vecs,0)
-    nl_vecs=np.concatenate(nl_vecs,0)
-    eval_loss = eval_loss / nb_eval_steps
-    perplexity = torch.tensor(eval_loss)
+    code_vecs=torch.cat(code_vecs,0)
+    nl_vecs=torch.cat(nl_vecs,0)
+    ids = torch.cat(ids, 0)
 
-    scores=np.matmul(nl_vecs,code_vecs.T)
+    predictions = []
+    for idx, desc, code in zip(ids, nl_vecs, code_vecs):
+        predictions.append(
+            {
+                "idx": idx.item(),
+                "desc_repr": desc.tolist(),
+                "code_repr": code.tolist()
+            }
+        )
 
-    sort_ids=np.argsort(scores, axis=-1, kind='quicksort', order=None)[:,::-1]
-    indexs=[]
-    urls=[]
-    for example in eval_dataset.examples:
-        indexs.append(example.idx)
-        urls.append(example.url)
-    with open(os.path.join(args.output_dir,"predictions.jsonl"),'w') as f:
-        for index,url,sort_id in zip(indexs,urls,sort_ids):
-            js={}
-            js['url']=url
-            js['answers']=[]
-            for idx in sort_id[:100]:
-                js['answers'].append(indexs[int(idx)])
-            f.write(json.dumps(js)+'\n')
+
+
+    # with open(os.path.join(args.output_dir,"predictions.pt"),'w') as f:
+    torch.save(predictions, os.path.join(args.output_dir,"predictions.pt"))
                         
                         
 def main():
