@@ -380,7 +380,7 @@ def test(args, model, tokenizer):
                             "desc_repr": desc.tolist(),
                             "code_repr": code.tolist()
                         }
-                    predictions_file.write(json.dumps(prediction))
+                    predictions_file.write(f"{json.dumps(prediction)}\n")
 
 
 
@@ -584,6 +584,7 @@ def main():
     if args.do_test and args.local_rank in [-1, 0]:
         checkpoint_prefix = 'checkpoint-best-mrr/model.bin'
         output_dir = os.path.join(args.output_dir, '{}'.format(checkpoint_prefix))
+        logger.info("Loading Model States")
         model.load_state_dict(torch.load(output_dir))
         model.to(args.device)
         test(args, model, tokenizer)
